@@ -20,11 +20,13 @@ class Main:
         # setup canvas
         pygame.init()
         pygame.display.set_caption(title)
-        self.canvas = pygame.display.set_mode(size)
+        self.size = size
+        self.canvas = pygame.display.set_mode(self.size)
         self.clock = pygame.time.Clock()
         self.bg = bg
         self.ball_img_link = ball_img_link
         self.paddle_img_link = paddle_img_link
+        self.font = pygame.font.Font(None, 36)
         # create objects (player, ball, paddles)
         self.ball = Ball(
             img_url=ball_img_link, speed_x=ball_speed[0], speed_y=ball_speed[1]
@@ -41,6 +43,10 @@ class Main:
         self.paddle_2.setY(y=paddle_2_location[1])
 
     def run(self):
+        # Timer attributes
+        self.start_time = pygame.time.get_ticks()
+        self.elapsed_time = 0
+
         while True:  # play game
             events = pygame.event.get()  # bat su kien
             for e in events:
@@ -87,17 +93,56 @@ class Main:
             if self.player.getKeyDown2():
                 self.paddle_2.move(1, 0, 480)
 
-            # show canvas
-            self.canvas.fill(self.bg)
-            self.canvas.blit(self.ball.img_url, (self.ball.getX(), self.ball.getY()))
-            self.canvas.blit(
-                self.paddle_1.img, (self.paddle_1.getX(), self.paddle_1.getY())
-            )
-            self.canvas.blit(
-                self.paddle_2.img, (self.paddle_2.getX(), self.paddle_2.getY())
-            )
+            # update timer
+            self.countTimer()
+
+            # drawTimer
+            self.drawScreen()
+
+            # Check win/ lose
+            if self.elapsed_time >= 30:
+                self.createRoomEnd()
+                return
+
+    def createRoomEnd(self):
+        while True:  # play game
+            events = pygame.event.get()  # bat su kien
+            for e in events:
+                # quit
+                if e.type == pygame.QUIT:
+                    return
+            self.canvas.fill((0, 0, 0))  # Clear canvas
+            text = self.font.render("You done!!!", True, (255, 255, 255))
+            # draw text in the center
+            self.canvas.blit(text, (self.size[0] / 2 - 50, self.size[1] / 2))
+
             self.clock.tick(60)
             pygame.display.flip()
+
+    def countTimer(self):
+        # Update the elapsed time
+        self.elapsed_time = (
+            pygame.time.get_ticks() - self.start_time
+        ) / 1000  # Convert to seconds
+
+    def drawScreen(self):
+        # Render the elapsed time
+        timer_text = self.font.render(
+            f"Time: {self.elapsed_time:.2f}s", True, (255, 255, 255)
+        )
+
+        # show canvas
+        self.canvas.fill(self.bg)
+        self.canvas.blit(timer_text, (10, 10))
+        self.canvas.blit(self.ball.img_url, (self.ball.getX(), self.ball.getY()))
+        self.canvas.blit(
+            self.paddle_1.img, (self.paddle_1.getX(), self.paddle_1.getY())
+        )
+        self.canvas.blit(
+            self.paddle_2.img, (self.paddle_2.getX(), self.paddle_2.getY())
+        )
+        self.clock.tick(60)
+        pygame.display.flip()
 
 
 # Driver code
